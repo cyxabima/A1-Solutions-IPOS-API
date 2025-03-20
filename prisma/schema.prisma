@@ -12,3 +12,49 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+model Customer {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  name      String
+  phone     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  email     String    @unique
+  username  String    @unique
+  firstname String
+  lastname  String
+  phone     String
+  dob       DateTime?
+  gender    Gender
+  image     String?
+  role      Role      @default(ATTENDANT)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  shops     Shop[] // relationship with shop
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Role {
+  ATTENDANT
+  ADMIN
+}
+
+model Shop {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  location     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  admin        User?    @relation(fields: [adminId], references: [id])
+  adminId      String?  @db.ObjectId
+  attendantIds String   @db.ObjectId
+}
