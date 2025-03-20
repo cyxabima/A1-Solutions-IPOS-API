@@ -1,7 +1,7 @@
 class ApiError extends Error {
     statusCode: number;
     details?: any;
-
+    // THE ABOVE DECLARATION IS SPECIFIC TO ts
     constructor(statusCode: number, message: string, details?: any) {
         super(message);
         this.statusCode = statusCode;
