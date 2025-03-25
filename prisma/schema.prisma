@@ -52,10 +52,11 @@ enum Role {
 model Shop {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   name         String
+  slug         String   @unique
   location     String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   admin        User?    @relation(fields: [adminId], references: [id])
   adminId      String?  @db.ObjectId
-  attendantIds String   @db.ObjectId
+  attendantIds String[]   @db.ObjectId
 }
