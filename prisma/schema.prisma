@@ -28,6 +28,7 @@ model User {
   username  String    @unique
   firstname String
   lastname  String
+  password  String
   phone     String
   dob       DateTime?
   gender    Gender
