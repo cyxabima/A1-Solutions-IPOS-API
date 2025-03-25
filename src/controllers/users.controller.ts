@@ -1,8 +1,9 @@
 import { db } from "@/db/db";
 import ApiError from "@/utils/ApiError";
 import ApiResponse from "@/utils/ApiResponse";
-import { hash } from "bcrypt";
-import { NextFunction, Request, Response } from "express";
+import { asyncHandler } from "@/utils/asyncHandler";
+import { hashPassword, verifyPassword } from "@/utils/passwordUtility";
+import { NextFunction, Request, response, Response } from "express";
 
 const registerUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -50,7 +51,7 @@ const registerUser = async (req: Request, res: Response, next: NextFunction) => 
 
         if (existingUserByUserName) return next(new ApiError(409, "User name is taken", "Plz use another username"))
 
-        const hashedPassword = await hash(password, 10)
+        const hashedPassword = await hashPassword(password, 10)
 
         const newUser = await db.user.create({
             data: {
@@ -79,5 +80,125 @@ const registerUser = async (req: Request, res: Response, next: NextFunction) => 
 
 }
 
+const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
+    const allUsers = await db.user.findMany({
+        orderBy: {
+            createdAt: "desc"
+        }
+    })
 
-export { registerUser }
+    res.status(200).json(new ApiResponse(200, "success", allUsers))
+})
+
+const getUserById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params
+    const user = await db.user.findUnique({
+        where: {
+            id
+        }
+    })
+
+    if (!user) return next(new ApiError(404, "User Not Found", "404 not found"))
+
+    res.status(200).json(new ApiResponse(200, "success", user))
+})
+
+const deleteUserById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params
+
+    const user = await db.user.delete({
+        where: {
+            id
+        }
+
+    })
+
+    if (!user) return next(new ApiError(404, "User Not Found", "404 not found"))
+    res.status(204).json(new ApiResponse(204, "user deleted successfully", null))
+
+})
+
+const updateUserById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params
+    const { email,
+        username,
+        firstname,
+        lastname,
+        phone,
+        dob,
+        gender,
+        image,
+        role, } = req.body
+    const user = await db.user.findUnique({
+        where: {
+            id
+        }
+    })
+
+    if (!user) return next(new ApiError(404, "User Not Found", "404 not found"))
+
+    if (email) {
+        const emailExist = await db.user.findUnique({
+            where: {
+                email
+            }
+        })
+
+        if (emailExist) return next(new ApiError(409, "Email already Exits", "Conflict"))
+    }
+
+    const updatedUser = await db.user.update({
+        where: {
+            id
+        }, data: {
+            email,
+            username,
+            firstname,
+            lastname,
+            phone,
+            dob,
+            gender,
+            image,
+            role,
+        }
+    })
+
+    res.status(200).json(new ApiResponse(200, "User Updated successfully", updatedUser))
+
+})
+
+const updateUserPasswordById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params
+    const { previousPassword, newPassword } = req.body
+
+    if (!previousPassword || !newPassword) {
+        return next(new ApiError(406, "Both fields are required", "Not Acceptable"))
+    }
+
+    const user = await db.user.findUnique({
+        where: {
+            id
+        }
+    })
+
+    if (!user) return next(new ApiError(404, "User Not Found", "404 not found"))
+
+    if (!await verifyPassword(previousPassword, user.password)) {
+        return next(new ApiError(400, "Previous password is incorrect", "Bad request"))
+    }
+
+    const newHashedPassword = await hashPassword(newPassword, 10)
+
+    const updatedUser = await db.user.update({
+        where: {
+            id
+        }, data: {
+            password: newHashedPassword
+        }
+    })
+
+    res.status(200).json(new ApiResponse(200, "Password Updated Successfully", updatedUser))
+
+})
+
+export { registerUser, getAllUsers, getUserById, deleteUserById, updateUserById, updateUserPasswordById }
