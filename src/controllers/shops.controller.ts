@@ -48,6 +48,15 @@ const getShopById = asyncHandler(async (req: Request, res: Response, next: NextF
     res.status(200).json(new ApiResponse(200, "Shop Get SuccessFully", shop))
 })
 
+const getShops = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const shops = await db.shop.findMany({
+        orderBy: {
+            createdAt: "desc"
+        }
+    })
+    res.status(200).json(new ApiResponse(200, "All Shops Get Successfully", shops,))
+})
+
 
 const getShopAttendants = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
 
@@ -84,4 +93,4 @@ const getShopAttendants = asyncHandler(async (req: Request, res: Response, next:
 
 })
 
-export { createShop, getShopById, getShopAttendants }
+export { createShop, getShopById, getShopAttendants, getShops }

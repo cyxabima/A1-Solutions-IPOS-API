@@ -3,7 +3,7 @@ import ApiError from "@/utils/ApiError";
 import ApiResponse from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 import { hashPassword, verifyPassword } from "@/utils/passwordUtility";
-import { NextFunction, Request, response, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 const registerUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
