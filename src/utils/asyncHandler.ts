@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
+import ApiResponse from "./ApiResponse";
 
 
 export const asyncHandler = (callback: RequestHandler): RequestHandler => {

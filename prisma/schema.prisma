@@ -14,12 +14,22 @@ datasource db {
 }
 
 model Customer {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  name      String
-  phone     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  customerType   CustomerType
+  firstName      String
+  lastName       String
+  phone          String       @unique
+  gender         Gender       @default(MALE)
+  country        String
+  location       String
+  maxCreditLimit Float?
+  maxCreditDays  Int?
+  taxPin         String?
+  dob            DateTime?
+  email          String?      @unique
+  NIC            String?      @unique
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model User {
@@ -39,16 +49,6 @@ model User {
   shops     Shop[] // relationship with shop
 }
 
-enum Gender {
-  MALE
-  FEMALE
-}
-
-enum Role {
-  ATTENDANT
-  ADMIN
-}
-
 model Shop {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   name         String
@@ -58,5 +58,51 @@ model Shop {
   updatedAt    DateTime @updatedAt
   admin        User?    @relation(fields: [adminId], references: [id])
   adminId      String?  @db.ObjectId
-  attendantIds String[]   @db.ObjectId
+  attendantIds String[] @db.ObjectId
+}
+
+model Supplier {
+  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+  supplierType       SupplierType
+  name               String
+  contactPerson      String
+  phone              String       @unique
+  email              String?      @unique
+  location           String
+  country            String
+  website            String?
+  taxPin             String?
+  registrationNumber String?      @unique
+  bankAccountNumber  String?
+  bankName           String?
+  paymentTerms       String?
+  rating             Float?
+  notes              String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+enum SupplierType {
+  MANUFACTURER
+  DISTRIBUTOR
+  WHOLESALER
+  RETAILER
+  OTHER
+}
+
+enum CustomerType {
+  RETAIL
+  WHOLESALE
+  DISTRIBUTOR
+  OTHER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Role {
+  ATTENDANT
+  ADMIN
 }

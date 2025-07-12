@@ -3,6 +3,7 @@ import customerRouter from "./routes/customers.routes";
 import userRouter from "./routes/users.routes"
 import { errorHandler } from "./middlewares/error.middleware";
 import shopRouter from "./routes/shops.routes";
+import supplierRouter from "./routes/suppliers.routes";
 
 require("dotenv").config();
 const cors = require("cors");
@@ -17,7 +18,7 @@ app.use(express.json()); // Parse incoming JSON requests and make the data avail
 app.use("/api/v1/customers", customerRouter)
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/shops", shopRouter)
-
+app.use("/api/v1/suppliers", supplierRouter)
 
 
 // error handling middleware

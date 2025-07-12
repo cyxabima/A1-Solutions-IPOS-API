@@ -128,7 +128,7 @@ const updateUserById = asyncHandler(async (req: Request, res: Response, next: Ne
         dob,
         gender,
         image,
-        role, } = req.body
+        role, password } = req.body
     const user = await db.user.findUnique({
         where: {
             id
@@ -137,14 +137,38 @@ const updateUserById = asyncHandler(async (req: Request, res: Response, next: Ne
 
     if (!user) return next(new ApiError(404, "User Not Found", "404 not found"))
 
-    if (email) {
+    if (username && username !== user.username) {
+        const usernameExist = await db.user.findUnique({
+            where: {
+                username
+            }
+        })
+
+        if (usernameExist) return next(new ApiError(409, `${username} is already taken`, "Conflict"))
+    }
+
+    if (email && email !== user.email) {
         const emailExist = await db.user.findUnique({
             where: {
                 email
             }
         })
 
-        if (emailExist) return next(new ApiError(409, "Email already Exits", "Conflict"))
+        if (emailExist) return next(new ApiError(409, `${email} already taken`, "Conflict"))
+    }
+
+    if (phone && phone !== user.phone) {
+        const phoneExist = await db.user.findFirst({
+            where: {
+                phone: phone
+            }
+        })
+        if (phoneExist) return next(new ApiError(409, `${phone} already taken`, "Conflict"))
+    }
+
+    let hashedPassword = user.password;
+    if (password) {
+        hashedPassword = await hashPassword(password, 10)
     }
 
     const updatedUser = await db.user.update({
@@ -160,10 +184,11 @@ const updateUserById = asyncHandler(async (req: Request, res: Response, next: Ne
             gender,
             image,
             role,
+            password: hashedPassword,
         }
     })
-
-    res.status(200).json(new ApiResponse(200, "User Updated successfully", updatedUser))
+    const { password: _, ...other } = updatedUser
+    res.status(200).json(new ApiResponse(200, "User Updated successfully", other))
 
 })
 
