@@ -4,6 +4,7 @@ import userRouter from "./routes/users.routes"
 import { errorHandler } from "./middlewares/error.middleware";
 import shopRouter from "./routes/shops.routes";
 import supplierRouter from "./routes/suppliers.routes";
+import authRouter from "./routes/auth.routes";
 
 require("dotenv").config();
 const cors = require("cors");
@@ -19,6 +20,7 @@ app.use("/api/v1/customers", customerRouter)
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/shops", shopRouter)
 app.use("/api/v1/suppliers", supplierRouter)
+app.use("/api/v1/auth", authRouter)
 
 
 // error handling middleware
