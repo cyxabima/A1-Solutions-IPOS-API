@@ -85,11 +85,13 @@ const updateCategoryById = asyncHandler(async (req: Request, res: Response, next
 
     if (!Category) return next(new ApiError(404, "Category Not Found", "404 not found"));
 
-    const slugExit = await db.category.findUnique({
-        where: { slug }
-    });
-
-    if (slugExit) return next(new ApiError(409, "Slug already Exits", "Conflict"));
+    if (slug && slug !== Category.slug) {
+        const slugExit = await db.category.findUnique({
+            where: { slug }
+        });
+        
+        if (slugExit) return next(new ApiError(409, "Slug already Exits", "Conflict"));
+    }
 
     const updatedCategory = db.category.update({
         where: { id },

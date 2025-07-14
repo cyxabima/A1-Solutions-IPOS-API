@@ -85,11 +85,13 @@ const updateUnitById = asyncHandler(async (req: Request, res: Response, next: Ne
 
     if (!unit) return next(new ApiError(404, "Unit Not Found", "404 not found"));
 
-    const slugExit = await db.brand.findUnique({
-        where: { slug }
-    });
+    if (slug && slug !== unit.slug) {
+        const slugExit = await db.brand.findUnique({
+            where: { slug }
+        });
 
-    if (slugExit) return next(new ApiError(409, "Slug already Exits", "Conflict"));
+        if (slugExit) return next(new ApiError(409, "Slug already Exits", "Conflict"));
+    }
 
 
     const updatedUnit = db.unit.update({
