@@ -84,7 +84,7 @@ const updateBrandById = asyncHandler(async (req: Request, res: Response, next: N
     })
 
     if (!brand) return next(new ApiError(404, "Brand Not Found", "404 not found"));
-    
+
     if (slug && slug !== brand.slug) {
         const slugExit = await db.brand.findUnique({
             where: { slug }
@@ -93,7 +93,7 @@ const updateBrandById = asyncHandler(async (req: Request, res: Response, next: N
         if (slugExit) return next(new ApiError(409, "Slug already Exits", "Conflict"));
     }
 
-    const updatedBrand = db.brand.update({
+    const updatedBrand = await db.brand.update({
         where: { id },
         data: {
             name,

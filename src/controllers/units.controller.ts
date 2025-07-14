@@ -94,7 +94,7 @@ const updateUnitById = asyncHandler(async (req: Request, res: Response, next: Ne
     }
 
 
-    const updatedUnit = db.unit.update({
+    const updatedUnit = await db.unit.update({
         where: { id },
         data: {
             name,

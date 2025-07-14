@@ -75,6 +75,11 @@ const getProductById = asyncHandler(async (req: Request, res: Response, next: Ne
     const product = await db.product.findUnique({
         where: {
             id
+        },
+        include: {
+            brand: true,
+            category: true,
+            unit: true
         }
     })
 
@@ -168,21 +173,21 @@ const updateProductById = asyncHandler(async (req: Request, res: Response, next:
 
 
 
-    const updateProduct = db.product.update({
+    const updateProduct = await db.product.update({
         where: { id },
         data: {
-        name,
-        description,
-        alertQty,
-        stockQty,
-        buyingPrice,
-        sku,
-        productCode,
-        slug,
-        supplierId,
-        unitId,
-        brandId,
-        categoryId,
+            name,
+            description,
+            alertQty,
+            stockQty,
+            buyingPrice,
+            sku,
+            productCode,
+            slug,
+            supplierId,
+            unitId,
+            brandId,
+            categoryId,
         }
     })
 

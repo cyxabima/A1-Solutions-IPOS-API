@@ -89,11 +89,11 @@ const updateCategoryById = asyncHandler(async (req: Request, res: Response, next
         const slugExit = await db.category.findUnique({
             where: { slug }
         });
-        
+
         if (slugExit) return next(new ApiError(409, "Slug already Exits", "Conflict"));
     }
 
-    const updatedCategory = db.category.update({
+    const updatedCategory = await db.category.update({
         where: { id },
         data: {
             name,
