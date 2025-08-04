@@ -14,22 +14,24 @@ datasource db {
 }
 
 model Customer {
-  id             String       @id @default(auto()) @map("_id") @db.ObjectId
-  customerType   CustomerType
-  firstName      String
-  lastName       String
-  phone          String       @unique
-  gender         Gender       @default(MALE)
-  country        String
-  location       String
-  maxCreditLimit Float?
-  maxCreditDays  Int?
-  taxPin         String?
-  dob            DateTime?
-  email          String?      @unique
-  NIC            String?      @unique
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+  customerType       CustomerType
+  firstName          String
+  lastName           String
+  phone              String       @unique
+  gender             Gender       @default(MALE)
+  country            String
+  location           String
+  maxCreditLimit     Float?
+  maxCreditDays      Int?
+  unpaidCreditAmount Float        @default(0.0)
+  taxPin             String?
+  dob                DateTime?
+  email              String?      @unique
+  NIC                String?      @unique
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  Sale               Sale[]
 }
 
 model User {
@@ -59,6 +61,7 @@ model Shop {
   admin        User?    @relation(fields: [adminId], references: [id])
   adminId      String?  @db.ObjectId
   attendantIds String[] @db.ObjectId
+  sales        Sale[]
 }
 
 model Supplier {
@@ -109,25 +112,26 @@ enum Role {
 }
 
 model Product {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?
   alertQty    Int?
   stockQty    Int
   buyingPrice Float
-  sku         String   @unique
-  productCode String   @unique
-  slug        String   @unique
-  supplierId  String   @db.ObjectId
-  unitId      String   @db.ObjectId
-  brandId     String   @db.ObjectId
-  categoryId  String   @db.ObjectId
-  unit        Unit     @relation(fields: [unitId], references: [id])
-  brand       Brand    @relation(fields: [brandId], references: [id])
-  category    Category @relation(fields: [categoryId], references: [id])
-  supplier    Supplier @relation(fields: [supplierId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  sku         String     @unique
+  productCode String     @unique
+  slug        String     @unique
+  supplierId  String     @db.ObjectId
+  unitId      String     @db.ObjectId
+  brandId     String     @db.ObjectId
+  categoryId  String     @db.ObjectId
+  SaleItem    SaleItem[]
+  unit        Unit       @relation(fields: [unitId], references: [id])
+  brand       Brand      @relation(fields: [brandId], references: [id])
+  category    Category   @relation(fields: [categoryId], references: [id])
+  supplier    Supplier   @relation(fields: [supplierId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model Brand {
@@ -156,4 +160,72 @@ model Unit {
   products     Product[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model SaleItem {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  saleId      String @db.ObjectId
+  productId   String @db.ObjectId
+  qty         Int
+  salePrice   Float
+  productName String
+  // customerName  String
+  // customerEmail String?
+  //Todo: think about customerId, name and email
+  // Note: Consider adding profits and buying price
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // Relation Ships
+  product   Product  @relation(fields: [productId], references: [id])
+  sale      Sale     @relation(fields: [saleId], references: [id])
+}
+
+model Sale {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  customerId         String        @db.ObjectId
+  customerName       String?
+  customerEmail      String?
+  saleNumber         Int           @unique
+  saleType           SaleType
+  saleAmount         Int
+  paidAmount         Int
+  balanceAmount      Int?          @default(0)
+  paymentStatus      PaymentStatus @default(PAID)
+  paymentMethod      PaymentMethod @default(CASH)
+  transactionCode    String?
+  transactionAccount Accounts?
+
+  saleItems SaleItem[]
+  customer  Customer   @relation(fields: [customerId], references: [id])
+  Shop      Shop?      @relation(fields: [shopId], references: [id])
+  shopId    String?    @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PaymentStatus {
+  PAID
+  CREDIT
+}
+
+enum Accounts {
+  ALHABIB
+  MEEZAN
+  EASYPAISA
+  JAZZCASH
+  RASST
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CHEQUE
+}
+
+enum SaleType {
+  RETAIL
+  SERVICE
+  PROJECT
 }
