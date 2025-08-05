@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createSales, addItemToSale, getSaleById, getSales } from "@/controllers/sales.controller";
+import { createSales, addItemToSale, getSaleById, getSales, getShopSales } from "@/controllers/sales.controller";
 const salesRouter = Router()
 
 // sales routes 
@@ -7,6 +7,7 @@ const salesRouter = Router()
 salesRouter.post("/", createSales)
 salesRouter.get("/", getSales)
 salesRouter.get("/:id", getSaleById)
+salesRouter.get("/shop/:id", getShopSales)
 salesRouter.patch("/:saleId/item", addItemToSale)
 
 

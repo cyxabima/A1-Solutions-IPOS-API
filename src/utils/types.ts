@@ -14,7 +14,7 @@ export interface salesModel {
     paymentMethod: PaymentMethod
     transactionCode?: string | null
     transactionAccount?: Accounts | null
-    saleItems: SaleItemInput[]
+    saleItems?: SaleItemInput[] | null
     shopId: string
 }
 interface SaleItemInput {
@@ -25,3 +25,9 @@ interface SaleItemInput {
     productName: string
 }
 
+export interface CategorizedSales {
+    salesPaid: salesModel[];
+    salesCredit: salesModel[];
+    salesByBankTransfer: salesModel[];
+    salesByHandCash: salesModel[];
+}

@@ -4,7 +4,15 @@ import ApiResponse from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
 import generateId from "@/utils/generateId";
 import { NextFunction, Request, Response } from "express";
-import { salesModel } from "@/utils/types";
+import { CategorizedSales, salesModel } from "@/utils/types";
+import {
+    startOfDay,
+    startOfWeek,
+    startOfMonth,
+    endOfDay,
+    endOfWeek,
+    endOfMonth,
+} from "date-fns";
 
 
 const createSales = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
@@ -214,6 +222,126 @@ const addItemToSale = asyncHandler(async (req: Request, res: Response, next: Nex
     });
 });
 
+// Now Analyst End Point
+const getShopSales = asyncHandler(async (req: Request, res: Response) => {
+    const { shopId } = req.params;
+
+    const todayStart = startOfDay(new Date());
+    const todayEnd = endOfDay(new Date());
+    const weekStart = startOfWeek(new Date());
+    const weekEnd = endOfWeek(new Date());
+    const monthStart = startOfMonth(new Date());
+    const monthEnd = endOfMonth(new Date());
+
+    const getSalesForRange = async (start?: Date, end?: Date) => {
+        return db.sale.findMany({
+            where: {
+                shopId,
+                // !only spread if start and end both exits {createdAt will be spread}
+                ...(start && end && {
+                    createdAt: {
+                        gte: start,
+                        lte: end,
+                    },
+                }),
+            },
+        });
+    };
 
 
-export { createSales, getSaleById, addItemToSale, getSales }
+    const getSummary = async (shopId: string, start: Date, end: Date) => {
+        const result = await db.sale.aggregate({
+            where: {
+                shopId,
+                createdAt: {
+                    gte: start,
+                    lte: end,
+                },
+            },
+            _sum: {
+                paidAmount: true,
+                balanceAmount: true,
+                // profit: true,
+            },
+        });
+
+        return {
+            cash: result._sum.paidAmount ?? 0,
+            balance: result._sum.balanceAmount ?? 0,
+            // profit: result._sum.profit ?? 0,
+        };
+    };
+
+    const [today, thisWeek, thisMonth, allTime] = await Promise.all([
+        getSummary(shopId, todayStart, todayEnd),
+        getSummary(shopId, weekStart, weekEnd),
+        getSummary(shopId, monthStart, monthEnd),
+        getSummary(shopId, new Date(2000, 0, 1), new Date()), // all time
+    ]);
+
+
+
+
+
+
+    const categorizeSales = (sales: salesModel[]) => {
+        const result: CategorizedSales = {
+            salesPaid: [],
+            salesCredit: [],
+            salesByBankTransfer: [],
+            salesByHandCash: [],
+        };
+
+        for (const sale of sales) {
+            const { paymentStatus, paymentMethod, paidAmount, balanceAmount } = sale;
+
+            if (paymentStatus === "PAID" && balanceAmount <= 0) {
+                result.salesPaid.push(sale);
+            }
+
+            if (paymentStatus === "CREDIT" && balanceAmount > 0) {
+                result.salesCredit.push(sale);
+            }
+
+            if (paymentMethod === "BANK_TRANSFER" || paymentMethod === "CHEQUE") {
+                result.salesByBankTransfer.push(sale);
+            }
+
+            if (paymentMethod === "CASH" && balanceAmount <= 0) {
+                result.salesByHandCash.push(sale);
+            }
+        }
+
+        return result;
+    };
+
+    const [salesToday, salesThisWeek, salesThisMonth] = await Promise.all([
+        getSalesForRange(todayStart, todayEnd),
+        getSalesForRange(weekStart, weekEnd),
+        getSalesForRange(monthStart, monthEnd),
+        // getSalesForRange(), sells of all time with out pagination is a bullshit but if you want yearly and all time response use group by aggregation
+    ]);
+
+    res.status(200).json(
+        new ApiResponse(200, "Analyst Response", {
+            summary: {
+                today,
+                thisWeek,
+                thisMonth,
+                allTime
+            }, sales: {
+                today: categorizeSales(salesToday),
+                thisWeek: categorizeSales(salesThisWeek),
+                thisMonth: categorizeSales(salesThisMonth),
+                // allTime: categorizeSales(salesAllTime)
+            },
+        })
+    );
+});
+
+
+
+
+
+
+export { createSales, getSaleById, addItemToSale, getSales, getShopSales }
