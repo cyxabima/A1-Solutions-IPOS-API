@@ -207,6 +207,7 @@ model Sale {
 
 enum PaymentStatus {
   PAID
+  PARTIAL
   CREDIT
 }
 

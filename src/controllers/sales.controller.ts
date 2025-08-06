@@ -250,27 +250,89 @@ const getShopSales = asyncHandler(async (req: Request, res: Response) => {
 
 
     const getSummary = async (shopId: string, start: Date, end: Date) => {
-        const result = await db.sale.aggregate({
-            where: {
-                shopId,
-                createdAt: {
-                    gte: start,
-                    lte: end,
+        const [totals, paymentStatusCounts, paymentMethodCounts, saleTypeCounts] = await Promise.all([
+            db.sale.aggregate({
+                where: {
+                    shopId,
+                    createdAt: {
+                        gte: start,
+                        lte: end,
+                    },
                 },
-            },
-            _sum: {
-                paidAmount: true,
-                balanceAmount: true,
-                // profit: true,
-            },
-        });
+                _sum: {
+                    saleAmount: true,
+                    paidAmount: true,
+                    balanceAmount: true,
+                    // profit: true, // Uncomment if profit field exists
+                },
+            }),
+
+            db.sale.groupBy({
+                by: ['paymentStatus'],
+                where: {
+                    shopId,
+                    createdAt: {
+                        gte: start,
+                        lte: end,
+                    },
+                },
+                _count: {
+                    paymentStatus: true,
+                },
+            }),
+
+            db.sale.groupBy({
+                by: ['paymentMethod'],
+                where: {
+                    shopId,
+                    createdAt: {
+                        gte: start,
+                        lte: end,
+                    },
+                },
+                _count: {
+                    paymentMethod: true,
+                },
+            }),
+
+            db.sale.groupBy({
+                by: ['saleType'],
+                where: {
+                    shopId,
+                    createdAt: {
+                        gte: start,
+                        lte: end,
+                    },
+                },
+                _count: {
+                    saleType: true,
+                },
+            }),
+        ]);
 
         return {
-            cash: result._sum.paidAmount ?? 0,
-            balance: result._sum.balanceAmount ?? 0,
-            // profit: result._sum.profit ?? 0,
+            paid: totals._sum.paidAmount ?? 0,
+            balance: totals._sum.balanceAmount ?? 0,
+            total: totals._sum.saleAmount ?? 0,
+            // profit: totals._sum.profit ?? 0, // Uncomment if needed
+
+            byPaymentStatus: paymentStatusCounts.reduce((acc, item) => {
+                acc[item.paymentStatus] = item._count.paymentStatus;
+                return acc;
+            }, {} as Record<string, number>),
+
+            byPaymentMethod: paymentMethodCounts.reduce((acc, item) => {
+                acc[item.paymentMethod] = item._count.paymentMethod;
+                return acc;
+            }, {} as Record<string, number>),
+
+            bySaleType: saleTypeCounts.reduce((acc, item) => {
+                acc[item.saleType] = item._count.saleType;
+                return acc;
+            }, {} as Record<string, number>),
         };
     };
+
 
     const [today, thisWeek, thisMonth, allTime] = await Promise.all([
         getSummary(shopId, todayStart, todayEnd),
@@ -284,59 +346,53 @@ const getShopSales = asyncHandler(async (req: Request, res: Response) => {
 
 
 
-    const categorizeSales = (sales: salesModel[]) => {
-        const result: CategorizedSales = {
-            salesPaid: [],
-            salesCredit: [],
-            salesByBankTransfer: [],
-            salesByHandCash: [],
-        };
+    // const categorizeSales = (sales: salesModel[]) => {
+    //     const result: CategorizedSales = {
+    //         salesPaid: [],
+    //         salesCredit: [],
+    //         salesByBankTransfer: [],
+    //         salesByHandCash: [],
+    //     };
 
-        for (const sale of sales) {
-            const { paymentStatus, paymentMethod, paidAmount, balanceAmount } = sale;
+    //     for (const sale of sales) {
+    //         const { paymentStatus, paymentMethod, paidAmount, balanceAmount } = sale;
 
-            if (paymentStatus === "PAID" && balanceAmount <= 0) {
-                result.salesPaid.push(sale);
-            }
+    //         if (paymentStatus === "PAID" && balanceAmount <= 0) {
+    //             result.salesPaid.push(sale);
+    //         }
 
-            if (paymentStatus === "CREDIT" && balanceAmount > 0) {
-                result.salesCredit.push(sale);
-            }
+    //         if (paymentStatus === "CREDIT" && balanceAmount > 0) {
+    //             result.salesCredit.push(sale);
+    //         }
 
-            if (paymentMethod === "BANK_TRANSFER" || paymentMethod === "CHEQUE") {
-                result.salesByBankTransfer.push(sale);
-            }
+    //         if (paymentMethod === "BANK_TRANSFER" || paymentMethod === "CHEQUE") {
+    //             result.salesByBankTransfer.push(sale);
+    //         }
 
-            if (paymentMethod === "CASH" && balanceAmount <= 0) {
-                result.salesByHandCash.push(sale);
-            }
-        }
+    //         if (paymentMethod === "CASH" && balanceAmount <= 0) {
+    //             result.salesByHandCash.push(sale);
+    //         }
+    //     }
 
-        return result;
-    };
+    //     return result;
+    // };
 
-    const [salesToday, salesThisWeek, salesThisMonth] = await Promise.all([
-        getSalesForRange(todayStart, todayEnd),
-        getSalesForRange(weekStart, weekEnd),
-        getSalesForRange(monthStart, monthEnd),
-        // getSalesForRange(), sells of all time with out pagination is a bullshit but if you want yearly and all time response use group by aggregation
-    ]);
+    // const [salesToday, salesThisWeek, salesThisMonth] = await Promise.all([
+    //     getSalesForRange(todayStart, todayEnd),
+    //     getSalesForRange(weekStart, weekEnd),
+    //     getSalesForRange(monthStart, monthEnd),
+    //     // getSalesForRange(), sells of all time with out pagination is a bullshit but if you want yearly and all time response use group by aggregation
+    // ]);
 
     res.status(200).json(
         new ApiResponse(200, "Analyst Response", {
-            summary: {
-                today,
-                thisWeek,
-                thisMonth,
-                allTime
-            }, sales: {
-                today: categorizeSales(salesToday),
-                thisWeek: categorizeSales(salesThisWeek),
-                thisMonth: categorizeSales(salesThisMonth),
-                // allTime: categorizeSales(salesAllTime)
-            },
+            today,
+            thisWeek,
+            thisMonth,
+            allTime
         })
     );
+
 });
 
 
