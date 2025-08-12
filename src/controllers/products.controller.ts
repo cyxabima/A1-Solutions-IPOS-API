@@ -94,6 +94,10 @@ const getProducts = asyncHandler(async (req: Request, res: Response, next: NextF
     const products = await db.product.findMany({
         orderBy: {
             createdAt: "desc"
+        }, include: {
+            // brand: true,
+            category: true,
+            unit: true
         }
     })
     res.status(200).json(new ApiResponse(200, "All products Get Successfully", products))

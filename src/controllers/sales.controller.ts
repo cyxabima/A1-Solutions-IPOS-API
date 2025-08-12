@@ -76,7 +76,7 @@ const createSales = asyncHandler(async (req: Request, res: Response, next: NextF
                 customerEmail,
                 paymentMethod,
                 saleAmount,
-                saleNumber: generateId(), saleType,
+                saleNumber: saleNumber || generateId(), saleType,
                 shopId, balanceAmount, paidAmount, paymentStatus,
                 transactionCode, transactionAccount
             }

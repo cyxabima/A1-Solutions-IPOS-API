@@ -18,17 +18,17 @@ model Customer {
   customerType       CustomerType
   firstName          String
   lastName           String
-  phone              String       @unique
-  gender             Gender       @default(MALE)
+  phone              String?       @unique
+  gender             Gender?       @default(MALE)
   country            String
-  location           String
+  location           String?
   maxCreditLimit     Float?
   maxCreditDays      Int?
   unpaidCreditAmount Float        @default(0.0)
-  taxPin             String?
-  dob                DateTime?
+  // taxPin             String?
+  // dob                DateTime?
   email              String?      @unique
-  NIC                String?      @unique
+  NIC                String?      //we have remove the unique constrain from here
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
   Sale               Sale[]
