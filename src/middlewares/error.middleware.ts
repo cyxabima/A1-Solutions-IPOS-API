@@ -13,6 +13,7 @@ const errorHandler = (err: ApiError, req: Request, res: Response, next: NextFunc
         message,
         errorType
     });
+    next()
 };
 
 export { errorHandler, ApiError };

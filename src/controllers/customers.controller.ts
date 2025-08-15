@@ -18,8 +18,6 @@ const createCustomer = asyncHandler(async (req: Request, res: Response, next: Ne
             location,
             maxCreditLimit,
             maxCreditDays,
-            taxPin,
-            dob,
             email,
             NIC,
         } = req.body;
