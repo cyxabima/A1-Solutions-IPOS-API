@@ -49,7 +49,7 @@ const createSupplier: RequestHandler = async (req: Request, res: Response, next:
         }
 
         if (registrationNumber) {
-            const regExist = await db.supplier.findUnique({
+            const regExist = await db.supplier.findFirst({
                 where: {
                     registrationNumber
                 }

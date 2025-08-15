@@ -75,7 +75,7 @@ model Supplier {
   country            String
   website            String?
   taxPin             String?
-  registrationNumber String?      @unique
+  registrationNumber String?      
   bankAccountNumber  String?
   bankName           String?
   paymentTerms       String?
