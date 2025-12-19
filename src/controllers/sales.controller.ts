@@ -2,7 +2,6 @@ import { db } from "@/db/db";
 import ApiError from "@/utils/ApiError";
 import ApiResponse from "@/utils/ApiResponse";
 import { asyncHandler } from "@/utils/asyncHandler";
-import generateId from "@/utils/generateId";
 import { NextFunction, Request, Response } from "express";
 import { CategorizedSales, salesModel } from "@/utils/types";
 import {
@@ -24,6 +23,7 @@ const createSales = asyncHandler(async (req: Request, res: Response, next: NextF
         saleType,
         saleAmount,
         paidAmount,
+        profit,
         balanceAmount = 0,
         paymentStatus = "PAID",
         paymentMethod,
@@ -76,7 +76,8 @@ const createSales = asyncHandler(async (req: Request, res: Response, next: NextF
                 customerEmail,
                 paymentMethod,
                 saleAmount,
-                saleNumber: saleNumber || generateId(), saleType,
+                profit,
+                saleNumber: saleNumber, saleType,
                 shopId, balanceAmount, paidAmount, paymentStatus,
                 transactionCode, transactionAccount
             }
@@ -106,7 +107,10 @@ const createSales = asyncHandler(async (req: Request, res: Response, next: NextF
                         productId: item.productId,
                         qty: item.qty,
                         productName: item.productName,
-                        salePrice: item.salePrice
+                        salePrice: item.salePrice,
+                        buyingPrice: updatedProduct.buyingPrice,
+                        profit: item.salePrice - updatedProduct.buyingPrice,
+                        customerId: customerExits.id
                     }
                 });
                 if (!saleItem) return next(new ApiError(500, "Failed to create Sale", "FAILED CREATION"))
@@ -189,7 +193,10 @@ const addItemToSale = asyncHandler(async (req: Request, res: Response, next: Nex
                 productId,
                 qty,
                 salePrice,
-                productName: productName || product.name
+                productName: productName || product.name,
+                buyingPrice: product.buyingPrice,
+                profit: salePrice - product.buyingPrice,
+                customerId: sale.customerId
             }
         });
 
@@ -263,7 +270,7 @@ const getShopSales = asyncHandler(async (req: Request, res: Response) => {
                     saleAmount: true,
                     paidAmount: true,
                     balanceAmount: true,
-                    // profit: true, // Uncomment if profit field exists
+                    profit: true, // Uncomment if profit field exists
                 },
             }),
 
@@ -314,7 +321,7 @@ const getShopSales = asyncHandler(async (req: Request, res: Response) => {
             paid: totals._sum.paidAmount ?? 0,
             balance: totals._sum.balanceAmount ?? 0,
             total: totals._sum.saleAmount ?? 0,
-            // profit: totals._sum.profit ?? 0, // Uncomment if needed
+            profit: totals._sum.profit ?? 0, // Uncomment if needed
 
             byPaymentStatus: paymentStatusCounts.reduce((acc, item) => {
                 acc[item.paymentStatus] = item._count.paymentStatus;

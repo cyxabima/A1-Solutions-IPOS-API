@@ -195,7 +195,30 @@ const updateProductById = asyncHandler(async (req: Request, res: Response, next:
 
 })
 
+const searchProducts = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { q } = req.query;
+    if (!q) {
+        return next(new ApiError(400, "Search query is required", "Missing Query"));
+    }
+
+    const products = await db.product.findMany({
+        where: {
+            OR: [
+                { name: { contains: q as string, mode: "insensitive" } },
+                { description: { contains: q as string, mode: "insensitive" } },
+                { sku: { contains: q as string, mode: "insensitive" } },
+                { productCode: { contains: q as string, mode: "insensitive" } },
+            ],
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+
+    res
+        .status(200)
+        .json(new ApiResponse(200, "Products search successful", products));
+});
 
 
-
-export { createProduct, getProductById, getProducts, deleteProductById, updateProductById }
+export { createProduct, getProductById, getProducts, deleteProductById, updateProductById, searchProducts }

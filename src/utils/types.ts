@@ -5,10 +5,11 @@ export interface salesModel {
     customerId: string
     customerName?: string | null
     customerEmail?: string | null
-    saleNumber: number
+    saleNumber: string
     saleType: SaleType
     saleAmount: number
     paidAmount: number
+    profit: number
     balanceAmount: number
     paymentStatus: PaymentStatus
     paymentMethod: PaymentMethod

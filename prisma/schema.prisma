@@ -18,8 +18,8 @@ model Customer {
   customerType       CustomerType
   firstName          String
   lastName           String
-  phone              String?       @unique
-  gender             Gender?       @default(MALE)
+  phone              String?      @unique
+  gender             Gender?      @default(MALE)
   country            String
   location           String?
   maxCreditLimit     Float?
@@ -28,10 +28,11 @@ model Customer {
   // taxPin             String?
   // dob                DateTime?
   email              String?      @unique
-  NIC                String?      //we have remove the unique constrain from here
+  NIC                String? //we have remove the unique constrain from here
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
   Sale               Sale[]
+  SaleItem           SaleItem[]
 }
 
 model User {
@@ -75,7 +76,7 @@ model Supplier {
   country            String
   website            String?
   taxPin             String?
-  registrationNumber String?      
+  registrationNumber String?
   bankAccountNumber  String?
   bankName           String?
   paymentTerms       String?
@@ -170,17 +171,17 @@ model SaleItem {
   productId   String @db.ObjectId
   qty         Int
   salePrice   Float
+  buyingPrice Float?
+  profit      Float?
   productName String
-  // customerName  String
-  // customerEmail String?
-  //Todo: think about customerId, name and email
-  // Note: Consider adding profits and buying price
+  customerId  String @db.ObjectId
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   // Relation Ships
   product   Product  @relation(fields: [productId], references: [id])
   sale      Sale     @relation(fields: [saleId], references: [id])
+  customer  Customer @relation(fields: [customerId], references: [id])
 }
 
 model Sale {
@@ -188,11 +189,12 @@ model Sale {
   customerId         String        @db.ObjectId
   customerName       String?
   customerEmail      String?
-  saleNumber         Int           @unique
+  saleNumber         String        @unique
   saleType           SaleType
   saleAmount         Int
   paidAmount         Int
-  balanceAmount      Int          @default(0)
+  profit             Float?
+  balanceAmount      Int           @default(0)
   paymentStatus      PaymentStatus @default(PAID)
   paymentMethod      PaymentMethod @default(CASH)
   transactionCode    String?
@@ -201,7 +203,7 @@ model Sale {
   saleItems SaleItem[]
   customer  Customer   @relation(fields: [customerId], references: [id])
   Shop      Shop?      @relation(fields: [shopId], references: [id])
-  shopId    String    @db.ObjectId
+  shopId    String     @db.ObjectId
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
