@@ -13,22 +13,22 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^22.13.10",
-    "prisma": "^6.5.0",
+    "@types/node": "^22.19.3",
+    "prisma": "6.19",
     "ts-node-dev": "^2.0.0",
     "tsc-alias": "^1.8.11",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "6.19",
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2"
   },
